@@ -18,6 +18,9 @@ button {
   height: 100%;
   background: red;
   color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .hidden {
