@@ -3,7 +3,7 @@ let triggered = false;
 let countdownTimer;
 let impactTime = 0;
 
-const ACC_THRESHOLD = 20;   // m/s²
+const ACC_THRESHOLD = 28;   // m/s²
 const TIME_WINDOW = 1000;   // 1 second
 
 document.getElementById("startBtn").onclick = () => {
@@ -78,5 +78,6 @@ function sendEmergency() {
     alert("Location access denied");
   });
 }
+
 
 
