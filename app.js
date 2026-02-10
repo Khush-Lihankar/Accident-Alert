@@ -1,32 +1,45 @@
-let monitoring = false;
+let armed = false;
 let triggered = false;
 let countdownTimer;
 let impactTime = 0;
+let startTime = 0;
 
-const ACC_THRESHOLD = 28;   // m/s²
+const ACC_THRESHOLD = 28;   // real accident level
 const TIME_WINDOW = 1000;   // 1 second
+const ARM_DELAY = 3000;     // ignore first 3 seconds
 
 document.getElementById("startBtn").onclick = () => {
-  monitoring = true;
-  alert("Monitoring started");
+  armed = true;
+  triggered = false;
+  impactTime = 0;
+  startTime = Date.now();
+  document.getElementById("status").innerText = "Armed";
+  alert("Monitoring armed. Stabilizing sensors...");
 };
 
 window.addEventListener("devicemotion", (event) => {
-  if (!monitoring || triggered) return;
+  if (!armed || triggered) return;
 
-  const x = event.accelerationIncludingGravity.x || 0;
-  const y = event.accelerationIncludingGravity.y || 0;
-  const z = event.accelerationIncludingGravity.z || 0;
+  // Ignore early garbage data
+  if (Date.now() - startTime < ARM_DELAY) return;
 
-  const A = Math.sqrt(x*x + y*y + z*z);
+  const ax = event.accelerationIncludingGravity.x;
+  const ay = event.accelerationIncludingGravity.y;
+  const az = event.accelerationIncludingGravity.z;
+
+  // Reject invalid readings
+  if (ax === null || ay === null || az === null) return;
+
+  const A = Math.sqrt(ax*ax + ay*ay + az*az);
   document.getElementById("acc").innerText = A.toFixed(2);
+
+  // Reject impossible spikes (browser glitch)
+  if (A > 80) return;
 
   const now = Date.now();
 
   if (A >= ACC_THRESHOLD) {
-    if (impactTime === 0) {
-      impactTime = now;
-    }
+    if (impactTime === 0) impactTime = now;
 
     if (now - impactTime <= TIME_WINDOW) {
       triggerAlarm();
@@ -71,13 +84,11 @@ function sendEmergency() {
       `Location: https://maps.google.com/?q=${lat},${lon}\n` +
       `No response from rider.`;
 
-    // WhatsApp fallback (web limitation)
-    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
   }, () => {
     alert("Location access denied");
   });
 }
-
-
-
