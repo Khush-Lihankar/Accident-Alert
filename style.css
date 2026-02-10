@@ -1,0 +1,25 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+button {
+  padding: 15px;
+  margin: 10px;
+  font-size: 16px;
+}
+
+#alarm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: red;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}

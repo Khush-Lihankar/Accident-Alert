@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bike Safety</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Bike Accident Detection</h2>
+
+<button id="startBtn">Start Monitoring</button>
+<button id="testBtn">Test Alarm</button>
+
+<p>Acceleration: <span id="acc">0</span></p>
+
+<div id="alarm" class="hidden">
+  <h1>⚠️ Accident Detected</h1>
+  <p id="timer">10</p>
+  <button id="safeBtn">I’m Safe</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
