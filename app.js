@@ -4,37 +4,51 @@ let countdownTimer;
 let impactTime = 0;
 let startTime = 0;
 
-const ACC_THRESHOLD = 28;   // real accident level
-const TIME_WINDOW = 1000;   // 1 second
-const ARM_DELAY = 3000;     // ignore first 3 seconds
+const ACC_THRESHOLD = 28;
+const TIME_WINDOW = 1000;
+const ARM_DELAY = 3000;
+
+// --- DEVICE CHECK ---
+const isMobile =
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+  "DeviceMotionEvent" in window;
+
+document.getElementById("device").innerText =
+  isMobile ? "Mobile device detected" : "Desktop / Unsupported device";
 
 document.getElementById("startBtn").onclick = () => {
+  if (!isMobile) {
+    alert("Motion sensors not supported on this device");
+    return;
+  }
+
   armed = true;
   triggered = false;
   impactTime = 0;
   startTime = Date.now();
   document.getElementById("status").innerText = "Armed";
-  alert("Monitoring armed. Stabilizing sensors...");
 };
 
 window.addEventListener("devicemotion", (event) => {
-  if (!armed || triggered) return;
+  if (!armed || triggered || !isMobile) return;
 
-  // Ignore early garbage data
   if (Date.now() - startTime < ARM_DELAY) return;
 
-  const ax = event.accelerationIncludingGravity.x;
-  const ay = event.accelerationIncludingGravity.y;
-  const az = event.accelerationIncludingGravity.z;
+  const ax = event.accelerationIncludingGravity?.x;
+  const ay = event.accelerationIncludingGravity?.y;
+  const az = event.accelerationIncludingGravity?.z;
 
-  // Reject invalid readings
+  // HARD REJECTION
   if (ax === null || ay === null || az === null) return;
+
+  // Reject zero vectors (PC/browser fake data)
+  if (ax === 0 && ay === 0 && az === 0) return;
 
   const A = Math.sqrt(ax*ax + ay*ay + az*az);
   document.getElementById("acc").innerText = A.toFixed(2);
 
-  // Reject impossible spikes (browser glitch)
-  if (A > 80) return;
+  // Reject gravity-only flat readings
+  if (A < 9 || A > 80) return;
 
   const now = Date.now();
 
@@ -88,7 +102,5 @@ function sendEmergency() {
       `https://wa.me/?text=${encodeURIComponent(message)}`,
       "_blank"
     );
-  }, () => {
-    alert("Location access denied");
   });
 }
