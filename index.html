@@ -1,26 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bike Accident Detection</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BikeGuard - Accident Detection System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEJSURBVHgBrZNNSsQwEIbjn7DVo3gT24N4CHcFEbG3cCdeQT2A7sT4JGfI3MCDjG8yEEYqNJ0J4iIfHz/5ms43p1KgxS1EEN1+Uq/ZZQ9BfexsME1msI7AduyQmdfCbGicBhbMDM6i3u8bVJ7R4Gj5wB4Kq0EKcFAwqIaMwBOqVjMwJ7APGIL4Gc7xS0gEhFw/4yg3Ik5Rk9h2DQag4K72BUStv3iW76hGBWvRAc5hYgI0R96BI8F12l5j54JtSHe9UoY5IEbDBH54m8BDa2CUTQaWzWe2t0d1xEBAYvZ5QmBqCex8AcvC6WgPOCJ/Gny0ChL/ABsEG3sH1d2i/QIrOgZirDkU2QAAAABJRU5ErkJggg==">
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bicycle"></i> BikeGuard</h1>
+            <p class="subtitle">Accident Detection & Alert System</p>
+        </header>
 
-<h2>Bike Accident Detection</h2>
+        <div class="status-container">
+            <div class="status-card">
+                <div class="status-indicator" id="statusIndicator">
+                    <div class="indicator-circle"></div>
+                    <span id="statusText">Starting...</span>
+                </div>
+                <div class="sensor-data">
+                    <div class="data-item">
+                        <span class="data-label">Acceleration:</span>
+                        <span id="acceleration">0.00 g</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Impact Force:</span>
+                        <span id="impactForce">0.00 g</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">Last Update:</span>
+                        <span id="lastUpdate">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<button id="startBtn">Start Monitoring</button>
-<p>Status: <span id="status">Not armed</span></p>
-<p>Device: <span id="device">Checking...</span></p>
+        <div class="controls">
+            <button id="toggleMonitoring" class="btn btn-primary">
+                <i class="fas fa-play"></i> Start Monitoring
+            </button>
+            <button id="testImpact" class="btn btn-secondary">
+                <i class="fas fa-bolt"></i> Test Impact
+            </button>
+            <button id="emergencyCancel" class="btn btn-danger" style="display: none;">
+                <i class="fas fa-times-circle"></i> Cancel Emergency
+            </button>
+        </div>
 
-<p>Acceleration Magnitude: <span id="acc">0</span></p>
+        <div class="settings">
+            <h2><i class="fas fa-cog"></i> Settings</h2>
+            
+            <div class="setting-item">
+                <label for="sensitivity">Impact Sensitivity:</label>
+                <input type="range" id="sensitivity" min="1" max="10" value="6">
+                <span id="sensitivityValue">6</span>
+            </div>
+            
+            <div class="setting-item">
+                <label for="countdownTime">Countdown (seconds):</label>
+                <input type="number" id="countdownTime" min="5" max="30" value="10">
+            </div>
 
-<div id="alarm" class="hidden">
-  <h1>⚠️ Accident Detected</h1>
-  <p>Sending alert in <span id="timer">10</span> seconds</p>
-  <button id="safeBtn">I’m Safe</button>
-</div>
+            <div class="setting-item">
+                <label for="emergencyContacts">Emergency Contacts:</label>
+                <textarea id="emergencyContacts" placeholder="Enter phone numbers or names, one per line"></textarea>
+                <small>Each contact on a new line</small>
+            </div>
 
-<script src="app.js"></script>
+            <div class="setting-item">
+                <label for="emergencyMessage">Emergency Message:</label>
+                <textarea id="emergencyMessage">I've had a bike accident! My location: {LOCATION}. Please help! Sent via BikeGuard.</textarea>
+            </div>
+
+            <div class="setting-item">
+                <label>
+                    <input type="checkbox" id="enableSound" checked>
+                    Enable Alarm Sound
+                </label>
+            </div>
+        </div>
+
+        <div class="location-info">
+            <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+            <p id="locationStatus">Acquiring location...</p>
+            <div id="locationDetails" class="hidden">
+                <p>Latitude: <span id="latitude">-</span></p>
+                <p>Longitude: <span id="longitude">-</span></p>
+                <p>Accuracy: <span id="accuracy">-</span> meters</p>
+            </div>
+        </div>
+
+        <div class="logs">
+            <h3><i class="fas fa-clipboard-list"></i> System Log</h3>
+            <div id="logContainer"></div>
+        </div>
+
+        <!-- Emergency Alert Modal -->
+        <div id="emergencyModal" class="modal hidden">
+            <div class="modal-content emergency-alert">
+                <div class="alert-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>EMERGENCY ALERT</h2>
+                </div>
+                <div class="alert-body">
+                    <p>Possible accident detected!</p>
+                    <div class="countdown-display">
+                        <div class="countdown-circle">
+                            <svg width="120" height="120">
+                                <circle class="countdown-bg" cx="60" cy="60" r="54"></circle>
+                                <circle class="countdown-progress" cx="60" cy="60" r="54"></circle>
+                            </svg>
+                            <div class="countdown-text">
+                                <span id="countdownSeconds">10</span>
+                                <small>seconds</small>
+                            </div>
+                        </div>
+                    </div>
+                    <p>Emergency message will be sent to contacts if not cancelled.</p>
+                </div>
+                <div class="alert-actions">
+                    <button id="cancelEmergency" class="btn btn-success">
+                        <i class="fas fa-check"></i> I'M OK - CANCEL
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="alarmSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="app.js"></script>
 </body>
 </html>
